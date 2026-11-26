@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>נר נר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, playful family fridge-calendar for Hanukkah nights
+   IDEA: the page is a chanukiah — each candle is a night; it lights up when someone signs up
+   PICTURE: a big golden chanukiah in a starry night, with cute sufganiya & dreidel characters around it
+   COLOUR and TYPE: deep night blue ground, gold, flame orange; Secular One titles + Rubik body
+   LAYOUT: hero chanukiah as navigation → people chips → 8 night cards grid → add/edit dialog */
+:root{color-scheme:dark;--bg:#0b1838;--bg2:#13265a;--card:#172d66;--card2:#1d3778;--ink:#f4f1e8;--mute:#b7c3e4;--gold:#f5b82e;--gold2:#ffd76a;--flame:#ff7a1a;--jam:#e2324a;--line:#2b4a92}
+:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:20px;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Rubik,system-ui,sans-serif;overflow-x:clip;
+ background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff8 50%,transparent 51%),radial-gradient(1.5px 1.5px at 78% 9%,#fff9 50%,transparent 51%),radial-gradient(1px 1px at 55% 30%,#fff7 50%,transparent 51%),radial-gradient(1.5px 1.5px at 30% 6%,#fff6 50%,transparent 51%),radial-gradient(1px 1px at 90% 34%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 5% 40%,#fff6 50%,transparent 51%),radial-gradient(ellipse at 50% 0%,#24418c 0%,transparent 60%)}
+h1,h2,h3{font-family:'Secular One',Rubik,sans-serif;font-weight:400;margin:0;line-height:1.05;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+/* hero */
+.hero{text-align:center;position:relative;padding-bottom:8px}
+.hero h1{font-size:clamp(52px,9vw,96px);color:var(--gold);text-shadow:0 0 30px #f5b82e66}
+.hero .sub{font-size:clamp(17px,2.2vw,21px);color:var(--mute);margin:6px 0 0}
+.count{display:inline-flex;gap:10px;align-items:center;margin-top:14px;background:#ffffff12;border:1px solid #ffffff22;border-radius:999px;padding:8px 18px;font-weight:500}
+.count b{color:var(--gold2);font-size:20px}
+.stage{position:relative;max-width:760px;margin:10px auto 0}
+.menorah{width:100%;height:auto;display:block;overflow:visible}
+.cand{cursor:pointer}
+.cand:hover .cbody,.cand:focus-visible .cbody{filter:brightness(1.25)}
+.cand:focus{outline:none}.cand:focus-visible .ring{stroke:var(--gold2)}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick 1.4s ease-in-out infinite}
+.glow{animation:pulse 2.2s ease-in-out infinite}
+@keyframes flick{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(.92,1.08) skewX(3deg)}60%{transform:scale(1.05,.95) skewX(-3deg)}}
+@keyframes pulse{0%,100%{opacity:.55}50%{opacity:.9}}
+.panel{max-width:620px;margin:0 auto}
+.whos{max-width:620px;margin:36px auto 0;text-align:center}
+.whos h2{font-size:32px;color:var(--gold)}
+.whosub{margin:6px 0 0;color:var(--mute);font-size:15px}
+.whos .people{margin-top:14px}
+.chip{font-weight:500}.chip small{font-size:13px}
+.plist{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;text-align:start}
+.pitem{width:100%;display:flex;gap:12px;align-items:center;text-align:start;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--card2),var(--card));padding:10px 12px}
+.pitem:hover{border-color:var(--gold)}
+.pitem .nnum{width:40px;height:40px;font-size:20px}
+.pitem .av{flex:none;width:40px;height:40px}
+.pitem .tx{flex:1;display:flex;flex-direction:column}
+.pitem b{font-size:16px}.pitem .meta{font-size:14px;color:var(--mute)}.pitem .meta span{white-space:nowrap}
+.pitem em{font-style:normal;font-size:14px;color:var(--gold2)}
+.pempty{margin:16px 0 0;color:var(--mute)}
+.cand.sel .ring{stroke:var(--gold2);stroke-width:3;fill:#ffd76a1f}
+.cand.sel circle[r="13"]{fill:#f5b82e}.cand.sel circle[r="13"]+text{fill:#2a1b06}
+.nav{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#ffffff10;display:grid;place-items:center}
+.nav:disabled{opacity:.3;cursor:default}.nav svg{width:18px;height:18px}
+.nh .nt{flex:1}
+.night.swap{animation:pop .35s ease-out}@keyframes pop{from{opacity:.2;transform:translateY(8px)}}
+.buddy{position:absolute;width:clamp(56px,10vw,92px);height:auto;animation:bob 3s ease-in-out infinite}
+.buddy.b1{right:-2%;bottom:6%}
+.buddy.b2{left:0;bottom:10%;animation:spin 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-12px) rotate(4deg)}}
+@keyframes spin{0%,100%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-6px) scaleX(-1)}50%{transform:translateY(0) scaleX(1)}75%{transform:translateY(-6px) scaleX(-1)}}
+/* people */
+.people{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:4px 14px 4px 8px;border-radius:999px;border:1px solid var(--line);background:#ffffff0d}
+.chip svg{width:28px;height:28px}
+.chip[aria-pressed=true]{background:var(--gold);color:#2a1b06;border-color:var(--gold)}
+.chip small{opacity:.75}
+.status{margin:14px auto 0;max-width:640px;font-size:14px;color:var(--mute)}
+.status.warn{color:#ffd0a0}
+/* nights */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.grid{grid-template-columns:minmax(0,1fr)}.buddy{display:none}}
+.night{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px;position:relative;transition:transform .25s}
+.night.tonight{border-color:var(--gold);box-shadow:0 0 0 2px #f5b82e55,0 10px 40px #f5b82e33}
+.night.flash{transform:scale(1.02)}
+.nh{display:flex;gap:12px;align-items:center}
+.nnum{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#2a1b06;font:26px 'Secular One',sans-serif}
+.nh h3{font-size:24px}
+.date{margin:2px 0 0;color:var(--mute);font-size:14px}
+.badge{position:absolute;top:-10px;left:14px;background:var(--flame);color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px}
+.mini{height:26px;width:100%}
+.tip{margin:0;font-size:13px;color:#ffd9a8;background:#ff7a1a1c;border-radius:10px;padding:6px 10px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;flex:1}
+.entry{display:flex;gap:10px;align-items:flex-start;background:#0b183866;border-radius:14px;padding:10px;transition:opacity .2s}
+.entry.dim{opacity:.3}
+.entry .av{flex:none;width:44px;height:44px}
+.entry .tx{flex:1;display:flex;flex-direction:column}
+.entry b{font-size:17px}
+.entry .meta{font-size:14px;color:var(--mute)}
+.entry .meta span{white-space:nowrap}
+.entry em{font-style:normal;font-size:14px;color:var(--gold2)}
+.edit{flex:none;width:44px;height:44px;border-radius:12px;border:0;background:#ffffff10;display:grid;place-items:center}
+.edit svg{width:18px;height:18px}
+.add.solo{border-style:solid;background:var(--gold);color:#2a1b06;font-size:17px}
+.empty{color:var(--mute);font-size:14px;display:flex;align-items:center;gap:10px;padding:6px 2px}
+.empty svg{width:40px;height:40px;opacity:.85}
+.add{min-height:46px;border-radius:14px;border:2px dashed var(--gold);background:transparent;color:var(--gold2);font-weight:700}
+.add:hover{background:#f5b82e1a}
+/* dialog */
+dialog{border:0;border-radius:24px;padding:0;background:var(--bg2);color:var(--ink);width:min(560px,94vw);max-height:92vh}
+dialog::backdrop{background:#050b1ecc}
+form{padding:22px;display:flex;flex-direction:column;gap:14px}
+.dh{display:flex;align-items:center;gap:12px}.dh svg{width:56px;height:56px}
+.dh h2{font-size:28px;color:var(--gold)}
+label{display:flex;flex-direction:column;gap:4px;font-weight:500;font-size:15px}
+input,select,textarea{font-size:16px;min-height:46px;border-radius:12px;border:1px solid var(--line);background:#0b1838;padding:10px 12px}
+textarea{min-height:64px;resize:vertical}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+fieldset{border:0;padding:0;margin:0}
+legend{font-weight:500;font-size:15px;margin-bottom:6px}
+.picks{display:flex;flex-wrap:wrap;gap:8px}
+.picks label{flex-direction:row;align-items:center;gap:0;cursor:pointer}
+.picks input{position:absolute;opacity:0;width:1px;height:1px}
+.picks .pk{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid var(--line);border-radius:14px;padding:6px 8px;min-width:64px;font-size:13px;font-weight:400}
+.picks .pk svg{width:40px;height:40px}
+.picks input:checked+.pk{border-color:var(--gold);background:#f5b82e22}
+.picks input:focus-visible+.pk{outline:3px solid var(--gold2)}
+.fam .pk{min-width:0;min-height:44px;justify-content:center;font-size:15px;font-weight:500;padding:6px 14px}
+.other{margin-top:10px;font-size:14px;color:var(--mute)}
+.nights .pk{min-width:44px;min-height:44px;justify-content:center;font-size:15px;font-weight:700}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.btn{min-height:48px;padding:0 22px;border-radius:14px;border:0;font-weight:700}
+.btn.pri{background:var(--gold);color:#2a1b06;flex:1}
+.btn.sec{background:#ffffff14}
+.btn.del{background:transparent;color:#ff9aa8;border:1px solid #ff9aa866}
+.btn.del.sure{background:var(--jam);color:#fff}
+.err{color:#ffb0b0;font-size:14px;margin:0;min-height:1em}
+/* toast & sparks */
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,140%);background:var(--gold);color:#2a1b06;font-weight:700;padding:10px 18px 10px 10px;border-radius:999px;display:flex;align-items:center;gap:10px;transition:transform .35s cubic-bezier(.2,1.4,.4,1);z-index:9;max-width:92vw}
+.toast svg{width:40px;height:40px}
+.toast.on{transform:translate(-50%,0)}
+.spark{position:fixed;width:10px;height:14px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:radial-gradient(circle at 50% 70%,#fff3b0,var(--flame));pointer-events:none;z-index:10;animation:fly .9s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+footer{text-align:center;color:var(--mute);font-size:13px;padding:10px 16px 40px}
+@media(prefers-reduced-motion:reduce){.night.swap,.flame,.glow,.buddy,.spark{animation:none!important}html{scroll-behavior:auto}.toast{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".5" stop-color="#f5b82e"/><stop offset="1" stop-color="#b9780f"/></linearGradient>
+  <radialGradient id="fl" cx=".5" cy=".75" r=".6"><stop offset="0" stop-color="#fff6c2"/><stop offset=".45" stop-color="#ffc94a"/><stop offset="1" stop-color="#ff6a10"/></radialGradient>
+  <radialGradient id="halo"><stop offset="0" stop-color="#ffc94a" stop-opacity=".7"/><stop offset="1" stop-color="#ffc94a" stop-opacity="0"/></radialGradient>
+  <g id="face"><circle cx="26" cy="0" r="2.6" fill="#2a1b10"/><circle cx="38" cy="0" r="2.6" fill="#2a1b10"/><circle cx="27" cy="-1" r=".9" fill="#fff"/><circle cx="39" cy="-1" r=".9" fill="#fff"/><path d="M27 5q5 5 10 0" stroke="#2a1b10" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="21" cy="4" r="3" fill="#ff8fa3" opacity=".6"/><circle cx="43" cy="4" r="3" fill="#ff8fa3" opacity=".6"/></g>
+  <symbol id="c-candle" viewBox="0 0 64 64"><ellipse cx="32" cy="12" rx="9" ry="11" fill="url(#halo)"/><path class="flame" d="M32 2c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z" fill="url(#fl)"/><rect x="18" y="20" width="28" height="40" rx="7" fill="#4f8df7"/><path d="M18 30h28M18 50h28" stroke="#fff" stroke-width="5" opacity=".85"/><use href="#face" y="38"/></symbol>
+  <symbol id="c-sufgania" viewBox="0 0 64 64"><ellipse cx="32" cy="38" rx="27" ry="22" fill="#d98a3a"/><ellipse cx="32" cy="42" rx="27" ry="18" fill="#c47528"/><path d="M8 32q6-14 24-15t24 15q-4 4-8 0t-8 2-8-2-8 2-8-2-8 0z" fill="#fff" opacity=".95"/><circle cx="32" cy="17" r="5" fill="#e2324a"/><circle cx="30" cy="15.5" r="1.4" fill="#fff" opacity=".7"/><use href="#face" y="41"/></symbol>
+  <symbol id="c-dreidel" viewBox="0 0 64 64"><rect x="28" y="2" width="8" height="14" rx="3" fill="#b9780f"/><path d="M12 16h40v24L32 62 12 40z" fill="#3cc0a0"/><path d="M12 16h40v8H12z" fill="#2f9c82"/><use href="#face" y="32"/><text x="32" y="51" text-anchor="middle" font-size="11" font-family="Secular One,sans-serif" fill="#0b3b30">נ</text></symbol>
+  <symbol id="c-latke" viewBox="0 0 64 64"><path d="M6 36q0-18 26-20t26 20-26 20T6 36z" fill="#c9852b"/><path d="M10 34q2-12 22-14" stroke="#e8b25a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="15" cy="44" r="2" fill="#8a5517"/><circle cx="50" cy="28" r="2" fill="#8a5517"/><circle cx="48" cy="46" r="1.6" fill="#8a5517"/><path d="M40 14q6-2 8 3" stroke="#f4f1e8" stroke-width="3" fill="none" stroke-linecap="round"/><use href="#face" y="35"/></symbol>
+  <symbol id="c-jug" viewBox="0 0 64 64"><path d="M46 26q12 0 10 12t-10 8" stroke="#a46a1e" stroke-width="5" fill="none"/><path d="M24 4h16v8l4 6q6 6 6 20 0 22-18 22T14 38q0-14 6-20l4-6z" fill="#e3a44a"/><rect x="22" y="2" width="20" height="6" rx="3" fill="#a46a1e"/><path d="M15 36h34" stroke="#fff3c4" stroke-width="3" opacity=".6"/><use href="#face" y="42"/></symbol>
+  <g id="pencil"><path d="M3 15l1-4 9-9 3 3-9 9-4 1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></g>
+ </defs>
+</svg>
+
+<header class="band hero">
+ <div class="wrap">
+  <h1>נר נר שמל</h1>
+  <p class="sub">מי מדליק, איפה ומתי — שמונה לילות של אור משפחתי</p>
+  <div class="count" id="count">חנוכה תשפ״ז</div>
+  <div class="stage">
+   <svg class="menorah" id="menorah" viewBox="0 0 520 300" role="group" aria-label="חנוכייה — כל נר הוא לילה"></svg>
+   <svg class="buddy b1" viewBox="0 0 64 64" aria-hidden="true"><use href="#c-sufgania"/></svg>
+   <svg class="buddy b2" viewBox="0 0 64 64" aria-hidden="true"><use href="#c-dreidel"/></svg>
+  </div>
+ </div>
+</header>
+
+<main class="band" style="padding-top:0">
+ <div class="panel" id="panel"></div>
+ <section class="whos" aria-labelledby="whoH">
+  <h2 id="whoH">האירועים של…</h2>
+  <p class="whosub">בחרו שם כדי לראות את כל ההדלקות שלו בכל הלילות</p>
+  <div class="people" id="people"></div>
+  <div id="personList" aria-live="polite"></div>
+ </section>
+ <p class="status" id="status" hidden></p>
+</main>
+
+<dialog id="dlg">
+ <form id="frm" novalidate>
+  <div class="dh"><svg viewBox="0 0 64 64" aria-hidden="true"><use id="dhUse" href="#c-candle"/></svg><h2 id="dTitle">מי מדליק?</h2></div>
+  <fieldset><legend>מי מדליק? (אפשר לבחור כמה)</legend><div class="picks fam" id="fFam"></div>
+   <label class="other">מישהו אחר?<input id="fWho" list="whoList" maxlength="60" autocomplete="off" placeholder="למשל: סבא וסבתא (כמה שמות — עם פסיק)"></label></fieldset>
+  <label>איפה<input id="fWhere" list="whereList" maxlength="60" autocomplete="off" placeholder="למשל: אצל שירי בגבעתיים"></label>
+  <div class="row">
+   <label>באיזו שעה<input id="fTime" type="time" value="17:00"></label>
+   <label id="singleWrap">לילה<select id="fNight"></select></label>
+  </div>
+  <fieldset id="multiWrap"><legend>באילו לילות? (אפשר כמה)</legend><div class="picks nights" id="fNights"></div></fieldset>
+  <label>הערה<textarea id="fNote" maxlength="140" placeholder="מביאים סופגניות? מסיבת לביבות? כתבו כאן"></textarea></label>
+  <fieldset><legend>בחרו דמות</legend><div class="picks" id="fChars"></div></fieldset>
+  <p class="err" id="fErr" role="alert"></p>
+  <div class="acts">
+   <button class="btn pri" id="bSave" type="submit">להדליק!</button>
+   <button class="btn sec" id="bCancel" type="button">ביטול</button>
+   <button class="btn del" id="bDel" type="button" hidden>מחיקה</button>
+  </div>
+ </form>
+</dialog>
+<datalist id="whoList"></datalist><datalist id="whereList"></datalist>
+<div class="toast" id="toast" role="status"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#c-sufgania"/></svg><span id="toastTx"></span></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+{
+const ORD=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שביעי','שמיני'];
+const WD=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const HEB=['כ״ה בכסלו','כ״ו בכסלו','כ״ז בכסלו','כ״ח בכסלו','כ״ט בכסלו','ל׳ בכסלו','א׳ בטבת','ב׳ בטבת'];
+const TIPS={1:'ערב שבת — מדליקים לפני הדלקת נרות שבת, עם נרות שידלקו עד אחרי צאת הכוכבים',2:'מוצאי שבת — מדליקים אחרי צאת השבת'};
+const DEFT={1:'15:45',2:'17:15'};
+const NIGHTS=ORD.map((o,i)=>({n:i+1,label:'נר '+o,date:new Date(2026,11,4+i),heb:'ליל '+HEB[i]}));
+const FAMILY=['מרב','רן','מאיה','גלעד','קרן','שגיא','שירי','דניאל','רעות','רועי','עומרי','שקד','ליצ׳י','ג׳וי'];
+const joinNames=a=>FAMILY.every(f=>a.includes(f))?(a.length===FAMILY.length?'כולם':'כולם + '+a.filter(k=>!FAMILY.includes(k)).join(', ')):a.length<2?(a[0]||''):a.slice(0,-1).join(', ')+' ו'+a[a.length-1];
+const CHARS=[['candle','נרי'],['sufgania','סופי'],['dreidel','סביבוני'],['latke','לביבי'],['jug','פכפך']];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const okChar=c=>CHARS.some(x=>x[0]===c)?c:'candle';
+const okTime=t=>/^\d{2}:\d{2}$/.test(t||'')?t:'';
+let items=[],col=null,canWrite=true,myId=null,sel=0,person=null,editing=null,loaded=false;
+const store={get(k){try{return JSON.parse(localStorage.getItem('nerner:'+k))}catch(e){return null}},set(k,v){try{localStorage.setItem('nerner:'+k,JSON.stringify(v))}catch(e){}}};
+
+function byNight(n){return items.filter(x=>x.night===n).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99')||a.at-b.at)}
+function tonight(){const t=new Date();t.setHours(0,0,0,0);return NIGHTS.find(x=>x.date.getTime()===t.getTime())?.n||0}
+
+function renderCount(){
+ const t=new Date();t.setHours(0,0,0,0);const d=Math.round((NIGHTS[0].date-t)/864e5);const tn=tonight();
+ const el=$('count');
+ if(tn)el.innerHTML='הלילה מדליקים <b>'+esc(NIGHTS[tn-1].label)+'</b>';
+ else if(d>1)el.innerHTML='עוד <b>'+d+'</b> ימים לנר ראשון · שישי 4.12';
+ else if(d===1)el.innerHTML='<b>מחר</b> נר ראשון!';
+ else el.innerHTML='חנוכה שמח! <b>נתראה בשנה הבאה</b>';
+}
+
+function renderMenorah(){
+ const xs=[478,426,374,322,198,146,94,42];
+ let s='<ellipse cx="260" cy="282" rx="90" ry="12" fill="#00000055"/><path d="M200 282q60-30 120 0z" fill="url(#gold)"/><rect x="250" y="160" width="20" height="112" rx="6" fill="url(#gold)"/>'
+ +'<path d="M30 160q230 70 460 0" stroke="url(#gold)" stroke-width="10" fill="none"/><rect x="22" y="150" width="476" height="14" rx="7" fill="url(#gold)"/>'
+ +'<rect x="246" y="112" width="28" height="40" rx="5" fill="url(#gold)"/>';
+ // shamash
+ s+=candleSvg(260,112,true,'#ffd76a',0);
+ xs.forEach((x,i)=>{const n=i+1;const c=byNight(n).length;s+=`<g class="cand${n===sel?' sel':''}" data-n="${n}" aria-pressed="${n===sel}" tabindex="0" role="button" aria-label="${esc(NIGHTS[i].label)}: ${c} הדלקות">`+candleSvg(x,150,c>0,n%2?'#4f8df7':'#f4f1e8',c)+`<circle cx="${x}" cy="214" r="13" fill="#0b1838" stroke="#f5b82e" stroke-width="2"/><text x="${x}" y="219" text-anchor="middle" font-size="15" font-family="Secular One,sans-serif" fill="#ffd76a">${n}</text><text x="${x}" y="244" text-anchor="middle" font-size="13" font-family="Rubik,sans-serif" fill="${n===sel?'#ffd76a':'#b7c3e4'}">${NIGHTS[i].date.getDate()}/12</text></g>`});
+ $('menorah').innerHTML=s;
+}
+function candleSvg(x,base,lit,color,cnt){
+ const h=58,top=base-h;
+ let g=`<rect class="ring" x="${x-16}" y="${top-38}" width="32" height="${h+40}" rx="10" fill="transparent" stroke="transparent" stroke-width="2"/>`
+ +`<rect x="${x-13}" y="${base-4}" width="26" height="10" rx="3" fill="url(#gold)"/>`
+ +`<rect class="cbody" x="${x-8}" y="${top}" width="16" height="${h}" rx="4" fill="${color}"/><path d="M${x-8} ${top+16}h16M${x-8} ${top+36}h16" stroke="${color==='#f4f1e8'?'#4f8df7':'#fff'}" stroke-width="4" opacity=".7"/>`
+ +`<line x1="${x}" y1="${top}" x2="${x}" y2="${top-6}" stroke="#2a1b06" stroke-width="2"/>`;
+ if(lit)g+=`<circle class="glow" cx="${x}" cy="${top-16}" r="24" fill="url(#halo)"/><path class="flame" d="M${x} ${top-34}c7 9 10 14 10 19a10 10 0 0 1-20 0c0-5 3-10 10-19z" fill="url(#fl)"/>`;
+ if(cnt>1)g+=`<circle cx="${x+12}" cy="${top-30}" r="10" fill="#ff7a1a"/><text x="${x+12}" y="${top-25.5}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">${cnt}</text>`;
+ return g;
+}
+
+function renderLists(){
+ const names=new Set(items.flatMap(x=>x.people));
+ $('whoList').innerHTML=[...names].filter(k=>!FAMILY.includes(k)).map(k=>`<option value="${esc(k)}">`).join('');
+ $('whereList').innerHTML=[...new Set(items.map(x=>x.where.trim()).filter(Boolean))].map(k=>`<option value="${esc(k)}">`).join('');
+}
+
+function renderPanel(){
+ const tn=tonight();const N=NIGHTS[sel-1];const list=byNight(N.n);const d=N.date;
+ const chev=dir=>`<svg viewBox="0 0 18 18" aria-hidden="true"><path d="${dir?'M7 3l6 6-6 6':'M11 3L5 9l6 6'}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+ const mini=`<svg class="mini" viewBox="0 0 180 26" preserveAspectRatio="xMaxYMid meet" aria-hidden="true">${Array.from({length:N.n+1},(_,i)=>{const x=172-i*20;const sh=i===0;return `<rect x="${x-3}" y="${sh?6:10}" width="6" height="${sh?18:14}" rx="2" fill="${sh?'#ffd76a':'#4f8df7'}"/><path d="M${x} ${sh?-2:2}c3 4 4 6 4 8a4 4 0 0 1-8 0c0-2 1-4 4-8z" fill="url(#fl)"/>`}).join('')}</svg>`;
+ const can=canWrite&&col;
+ $('panel').innerHTML=`<article class="night swap${tn===N.n?' tonight':''}" id="night-${N.n}">
+  ${tn===N.n?'<span class="badge">הלילה!</span>':''}
+  <div class="nh"><button class="nav" data-go="${N.n-1}" ${N.n===1?'disabled':''} aria-label="הלילה הקודם">${chev(1)}</button><div class="nnum">${N.n}</div><div class="nt"><h3>${esc(N.label)}</h3><p class="date">יום ${WD[d.getDay()]}, ${d.getDate()} בדצמבר · ${esc(N.heb)}</p></div><button class="nav" data-go="${N.n+1}" ${N.n===8?'disabled':''} aria-label="הלילה הבא">${chev(0)}</button></div>
+  ${mini}
+  ${TIPS[N.n]?`<p class="tip">${esc(TIPS[N.n])}</p>`:''}
+  ${list.length?`<ul class="list">${list.map(x=>`<li class="entry"><svg class="av" viewBox="0 0 64 64" aria-hidden="true"><use href="#c-${okChar(x.avatar)}"/></svg><div class="tx"><b>${esc(x.who)}</b><span class="meta">${x.where?`<span>${esc(x.where)}</span>`:''}${x.where&&x.time?' · ':''}${x.time?`<span>בשעה ${esc(x.time)}</span>`:''}</span>${x.note?`<em>${esc(x.note)}</em>`:''}</div>${can?`<button class="edit" data-id="${esc(x.id)}" aria-label="עריכת ההדלקה של ${esc(x.who)}"><svg viewBox="0 0 18 18"><use href="#pencil"/></svg></button>`:''}</li>`).join('')}</ul>`
+   :`<p class="empty"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#c-${CHARS[N.n%CHARS.length][0]}"/></svg>עוד אין אירועים בנר ${N.n}.</p>`}
+  ${can?`<button class="add${list.length?'':' solo'}" data-n="${N.n}">${list.length?'+ הוסף אירוע':'הוסף אירוע'}</button>`:''}
+ </article>`;
+}
+function renderPeople(){
+ const cnt=new Map(FAMILY.map(k=>[k,0]));items.forEach(x=>x.people.forEach(k=>cnt.set(k,(cnt.get(k)||0)+1)));
+ $('people').innerHTML=[...cnt].map(([k,c])=>`<button class="chip" data-who="${esc(k)}" aria-pressed="${person===k}">${esc(k)} <small>${c}</small></button>`).join('');
+ const box=$('personList');
+ if(!person){box.innerHTML='';return}
+ const list=items.filter(x=>x.people.includes(person)).sort((a,b)=>a.night-b.night||(a.time||'99').localeCompare(b.time||'99'));
+ if(!list.length){box.innerHTML=`<p class="pempty">ל${esc(person)} עוד אין אירועים.</p>`;return}
+ box.innerHTML=`<ul class="plist">${list.map(x=>{const N=NIGHTS[x.night-1];const d=N.date;const others=x.people.length>1?'עם: '+esc(x.who):'';return `<li><button class="pitem" data-n="${x.night}" aria-label="מעבר ל${esc(N.label)}"><span class="nnum">${x.night}</span><span class="tx"><b>${esc(N.label)} · יום ${WD[d.getDay()]} ${d.getDate()}.12</b><span class="meta">${x.time?`<span>בשעה ${esc(x.time)}</span>`:''}${x.time&&x.where?' · ':''}${x.where?`<span>${esc(x.where)}</span>`:''}</span>${others?`<span class="meta">${others}</span>`:''}${x.note?`<em>${esc(x.note)}</em>`:''}</span><svg class="av" viewBox="0 0 64 64" aria-hidden="true"><use href="#c-${okChar(x.avatar)}"/></svg></button></li>`}).join('')}</ul>`;
+}
+function defaultSel(){const tn=tonight();if(tn)return tn;const h=location.hash.match(/^#night-([1-8])$/);return h?+h[1]:1}
+function render(){if(!sel)sel=defaultSel();renderCount();renderMenorah();renderLists();renderPanel();renderPeople()}
+function pick(n){if(n<1||n>8)return;sel=n;renderMenorah();renderPanel();const p=$('panel');const r=p.getBoundingClientRect();if(r.top>innerHeight-120)p.scrollIntoView({block:'start'})}
+
+function setStatus(t,warn){const s=$('status');s.textContent=t;s.className='status'+(warn?' warn':'');s.hidden=!warn}
+function statusDefault(){setStatus('',false);return;const p=new Set(items.flatMap(x=>x.people)).size;setStatus(items.length?`${items.length} הדלקות רשומות · ${p} מדליקים במשפחה`:'עוד אין הדלקות — הוסיפו את הראשונה!')}
+
+// dialog
+$('fChars').innerHTML=CHARS.map(([id,nm])=>`<label><input type="radio" name="ch" value="${id}"><span class="pk"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#c-${id}"/></svg>${nm}</span></label>`).join('');
+$('fFam').innerHTML=FAMILY.map(nm=>`<label><input type="checkbox" name="fm" value="${esc(nm)}"><span class="pk">${esc(nm)}</span></label>`).join('');
+$('fNights').innerHTML=NIGHTS.map(N=>`<label><input type="checkbox" name="nt" value="${N.n}"><span class="pk" title="${esc(N.label)}">${N.n}</span></label>`).join('');
+$('fNight').innerHTML=NIGHTS.map(N=>`<option value="${N.n}">${esc(N.label)} · ${N.date.getDate()}.12</option>`).join('');
+$('fChars').addEventListener('change',e=>{$('dhUse').setAttribute('href','#c-'+okChar(e.target.value))});
+
+function openDlg(n,item){
+ editing=item||null;$('fErr').textContent='';const del=$('bDel');del.hidden=!item;del.classList.remove('sure');del.textContent='מחיקה';
+ const ch=item?okChar(item.avatar):(store.get('char')||'candle');
+ const chosen=item?item.people:(store.get('people')||[]);
+ document.querySelectorAll('[name=fm]').forEach(c=>c.checked=chosen.includes(c.value));
+ $('fWho').value=chosen.filter(k=>!FAMILY.includes(k)).join(', ');
+ $('fWhere').value=item?item.where:(store.get('where')||'');
+ $('fTime').value=item?(item.time||''):(DEFT[n]||'17:00');
+ $('fNote').value=item?item.note:'';
+ document.querySelectorAll('[name=ch]').forEach(r=>r.checked=r.value===ch);$('dhUse').setAttribute('href','#c-'+ch);
+ $('multiWrap').hidden=!!item;$('singleWrap').hidden=!item;
+ document.querySelectorAll('[name=nt]').forEach(c=>c.checked=+c.value===n);
+ $('fNight').value=String(item?item.night:n);
+ $('dTitle').textContent=item?'עריכת הדלקה':'מדליקים בנר '+n;
+ $('bSave').textContent=item?'שמירה':'להדליק!';
+ $('dlg').showModal();
+}
+$('bCancel').onclick=()=>$('dlg').close();
+$('bDel').onclick=async()=>{
+ const b=$('bDel');if(!b.classList.contains('sure')){b.classList.add('sure');b.textContent='בטוח? למחוק';return}
+ try{await col.doc(editing.id).delete();$('dlg').close();toast('ההדלקה נמחקה')}catch(e){$('fErr').textContent='המחיקה לא הצליחה, נסו שוב.'}
+};
+$('frm').addEventListener('submit',async e=>{
+ e.preventDefault();if(!col)return;
+ const extra=$('fWho').value.split(/[,،]/).map(t=>t.trim()).filter(Boolean);
+ const people=[...new Set([...[...document.querySelectorAll('[name=fm]:checked')].map(c=>c.value),...extra])].slice(0,20);
+ if(!people.length){$('fErr').textContent='בחרו מי מדליק';return}
+ const who=joinNames(people);
+ const ch=document.querySelector('[name=ch]:checked')?.value||'candle';
+ const base={who,people,where:$('fWhere').value.trim(),time:okTime($('fTime').value),note:$('fNote').value.trim(),avatar:okChar(ch)};
+ const nights=editing?[+$('fNight').value]:[...document.querySelectorAll('[name=nt]:checked')].map(c=>+c.value);
+ if(!nights.length){$('fErr').textContent='בחרו לפחות לילה אחד';return}
+ const btn=$('bSave');btn.disabled=true;
+ try{
+  if(editing){await col.doc(editing.id).set({...base,night:nights[0],by:editing.by||myId||'',at:editing.at||Date.now()})}
+  else{for(const n of nights)await col.add({...base,night:n,by:myId||'',at:Date.now()})}
+  store.set('people',people);store.set('where',base.where);store.set('char',base.avatar);
+  const r=btn.getBoundingClientRect();$('dlg').close();
+  sparks(r.left+r.width/2,r.top);
+  toast(editing?'עודכן!':(nights.length>1?`איזה אור! נוספו ${nights.length} לילות`:`איזה אור! ${who} בנר ${nights[0]}`));
+  if(nights[0]!==sel)pick(nights[0]);
+ }catch(err){
+  if(err&&(err.code==='invalid_argument'||err.code==='permission-denied')){canWrite=false;render();$('dlg').close();setStatus('אי אפשר לשמור כרגע — העריכה נסגרה.',true)}
+  else $('fErr').textContent=err&&err.code==='quota_exceeded'?'אין מקום לעוד הדלקות.':'השמירה לא הצליחה, נסו שוב.';
+ }finally{btn.disabled=false}
+});
+
+function sparks(x,y){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;for(let i=0;i<16;i++){const s=document.createElement('span');s.className='spark';const a=Math.PI*2*i/16;const d=60+Math.random()*70;s.style.left=x+'px';s.style.top=y+'px';s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',Math.sin(a)*d-40+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),950)}}
+let tt;function toast(t){$('toastTx').textContent=t;$('toast').classList.add('on');clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('on'),2600)}
+
+// clicks
+$('menorah').addEventListener('click',e=>{const g=e.target.closest('.cand');if(g)pick(+g.dataset.n)});
+$('menorah').addEventListener('keydown',e=>{const g=e.target.closest('.cand');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pick(+g.dataset.n)}});
+$('people').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;person=person===c.dataset.who?null:c.dataset.who;renderPeople()});
+$('personList').addEventListener('click',e=>{const b=e.target.closest('.pitem');if(!b)return;pick(+b.dataset.n);$('panel').scrollIntoView({block:'center'})});
+$('panel').addEventListener('click',e=>{
+ const nv=e.target.closest('.nav');if(nv){pick(+nv.dataset.go);return}
+ const a=e.target.closest('.add');if(a){openDlg(+a.dataset.n);return}
+ const ed=e.target.closest('.edit');if(ed){const it=items.find(x=>x.id===ed.dataset.id);if(it)openDlg(it.night,it)}
+});
+
+render();
+
+// data (Firebase)
+const SEEDS=[["ipjw9dohv23r3b6elmmh", {"at": 1795683511853, "avatar": "candle", "night": 7, "note": "", "people": ["מאיה", "גלעד", "נטע", "שובל", "נדב", "הדר", "יניר", "נועה"], "time": "17:00", "where": "יניר ונועה", "who": "מאיה, גלעד, נטע, שובל, נדב, הדר, יניר ונועה"}], ["j7bmb7jf2zmmyyvrwgb4", {"at": 1795683715798, "avatar": "candle", "night": 2, "note": "", "people": ["מאיה", "גלעד", "עומרי", "שקד", "ליצ׳י", "משפחה גלעד"], "time": "17:00", "where": "ענת ואשר", "who": "מאיה, גלעד, עומרי, שקד, ליצ׳י ומשפחה גלעד"}], ["seed-n2-b", {"at": 1764900002000, "avatar": "dreidel", "night": 2, "note": "", "people": ["מרב", "רן", "חבו ארגנטינה"], "time": "18:00", "where": "שמעון", "who": "מרב, רן וחבו ארגנטינה"}], ["seed-n3-a", {"at": 1764900003000, "avatar": "dreidel", "night": 3, "note": "", "people": ["רן", "מרב"], "time": "", "where": "אצל עדי סלע", "who": "רן ומרב"}], ["seed-n8-a", {"at": 1764900004000, "avatar": "candle", "night": 8, "note": "", "people": ["מאיה", "גלעד", "קרן", "שגיא", "שירי", "דניאל", "רעות", "רועי", "עומרי", "שקד", "ליצ׳י", "ג׳וי", "דור 3 עבאדי"], "time": "17:00", "where": "יער ירושלים", "who": "מאיה, גלעד, קרן, שגיא, שירי, דניאל, רעות, רועי, עומרי, שקד, ליצ׳י, ג׳וי ודור 3 עבאדי"}], ["seed-n8-b", {"at": 1764900005000, "avatar": "jug", "night": 8, "note": "עם בעלי הניסיון", "people": ["רן", "מרב"], "time": "17:00", "where": "בשמעון", "who": "רן ומרב"}], ["ytr4m040xn3ktj3j7imx", {"at": 1795682294272, "avatar": "candle", "night": 1, "note": "", "people": ["מרב", "רן", "מאיה", "גלעד", "קרן", "שגיא", "שירי", "דניאל", "רעות", "רועי", "עומרי", "שקד"], "time": "18:00", "where": "טבעון", "who": "מרב, רן, מאיה, גלעד, קרן, שגיא, שירי, דניאל, רעות, רועי, עומרי ושקד"}]];
+(async()=>{
+ const timer=setTimeout(()=>{if(!loaded)setStatus('לא מצליחים להגיע לנתונים כרגע — נסו לרענן בעוד רגע.',true)},10000);
+ const cfg=window.FIREBASE_CONFIG;
+ if(!cfg||!window.firebase){clearTimeout(timer);canWrite=false;render();setStatus('הדף עוד לא מחובר למסד הנתונים — בקרוב!',true);return}
+ let fs;
+ try{firebase.initializeApp(cfg);fs=firebase.firestore()}catch(e){clearTimeout(timer);canWrite=false;render();setStatus('לא הצלחנו להתחבר למסד הנתונים.',true);return}
+ col=fs.collection('lightings');render();
+ try{const m=fs.doc('meta/seed');const g=await m.get();if(!g.exists){const b=fs.batch();SEEDS.forEach(([id,d])=>b.set(col.doc(id),{...d,by:''}));b.set(m,{at:Date.now()});await b.commit()}}catch(e){}
+ col.onSnapshot(snap=>{
+  items=snap.docs.map(d=>{const v=d.data()||{};const n=+v.night;return{id:d.id,night:n>=1&&n<=8?Math.round(n):0,who:String(v.who||'').slice(0,200),people:(Array.isArray(v.people)?v.people:[v.who]).map(t=>String(t||'').trim().slice(0,60)).filter(Boolean),where:String(v.where||'').slice(0,60),time:okTime(String(v.time||'')),note:String(v.note||'').slice(0,140),avatar:String(v.avatar||''),by:String(v.by||''),at:+v.at||0}}).filter(x=>x.night&&x.who);
+  render();
+  if(!snap.metadata.fromCache){loaded=true;clearTimeout(timer)}
+  statusDefault();
+ },err=>{clearTimeout(timer);loaded=true;setStatus('לא הצלחנו לטעון את ההדלקות. נסו לרענן את הדף.',true)});
+})();
+}
+</script>
+</body>
+</html>

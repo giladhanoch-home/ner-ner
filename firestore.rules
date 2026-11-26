@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /lightings/{id} {
+      allow read: if true;
+      allow create, update: if request.time < timestamp.date(2027, 2, 1)
+        && request.resource.data.night is int
+        && request.resource.data.night >= 1 && request.resource.data.night <= 8
+        && request.resource.data.who is string
+        && request.resource.data.who.size() < 400
+        && request.resource.size() < 20;
+      allow delete: if request.time < timestamp.date(2027, 2, 1);
+    }
+    match /meta/{id} {
+      allow read: if true;
+      allow create: if request.time < timestamp.date(2027, 2, 1);
+    }
+  }
+}
